@@ -11,6 +11,7 @@ app.use(express.json());
 connectDB();
 
 app.use('/books', require('./routes/booksRoutes'));
+app.use('/users', require('./routes/userRoutes'));
 
 app.listen(port, () => {
     console.log(`Server running on Port ${port}`);
