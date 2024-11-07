@@ -2,6 +2,9 @@ const express = require('express');
 const router = express.Router();
 
 const booksController = require('../controllers/booksController');
+const { verifyJWT } = require('../middlewares/verifyJWT');
+
+router.use(verifyJWT);
 
 router.post('/add', booksController.addBook);
 router.get('/list', booksController.listOfBooks);
