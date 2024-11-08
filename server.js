@@ -15,6 +15,7 @@ connectDB();
 app.use('/books', require('./routes/booksRoutes'));
 app.use('/users', require('./routes/userRoutes'));
 app.use('/lf', require('./routes/libFunRoutes'));
+app.use('/ub', require('./routes/unavailableBooksRouter'));
 
 app.listen(port, () => {
     console.log(`Server running on Port ${port}`);

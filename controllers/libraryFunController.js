@@ -37,22 +37,26 @@ const borrowBook = async(req, res) => {
         return res.status(404).send("Book not found");
     }
 
-    if(foundBook.dateBorrowed){
-        const dateAns = (foundBook.returnDate).toDateString();
-
-        return res.status(202).send(`Book has already been borrowed. You can borrow it on ${dateAns}`);
-    } else {
-        let bDate = new Date();
-        let rDate = new Date(bDate);
-        (rDate.setDate(rDate.getDate() + 7));
-        
-        foundBook.dateBorrowed = bDate;
-        foundBook.returnDate = rDate;
-        foundBook.user_id = foundUser.user_id;
-
-        await foundBook.save();
-
-        res.status(202).send(`${foundBook.title} issued. You have to return in within 5 days. Late returns will be subject to a fine of PKR 50 per day`);
+    try{
+        if(foundBook.dateBorrowed){
+            const dateAns = (foundBook.returnDate).toDateString();
+    
+            return res.status(202).send(`Book has already been borrowed. You can borrow it on ${dateAns}`);
+        } else {
+            let bDate = new Date();
+            let rDate = new Date(bDate);
+            (rDate.setDate(rDate.getDate() + 7));
+            
+            foundBook.dateBorrowed = bDate;
+            foundBook.returnDate = rDate;
+            foundBook.user_id = foundUser.user_id;
+    
+            await foundBook.save();
+    
+            res.status(200).send(`${foundBook.title} issued. You have to return in within 5 days. Late returns will be subject to a fine of PKR 50 per day`);
+        }
+    } catch(error){
+        res.status(500).send(error);
     }
 }
 
@@ -92,23 +96,30 @@ const returnBook = async(req, res) => {
         return res.status(404).send("You have not borrowed/already returned this book");
     }
 
-    const return_today = new Date();
-    const daysElapsed = (return_today - foundBook.returnDate) / (24 * 60 * 60 * 1000);
-    const return_fine = daysElapsed * 10;
+    try{
+        const return_today = new Date();
 
-    foundBook.dateBorrowed = null;
-    foundBook.returnDate = null;
-    foundBook.user_id = null;
+        //test
+        //return_today.setDate(return_today.getDate() + 10);
+        
+        const daysElapsed = Math.round((return_today - foundBook.returnDate) / (1000 * 60 * 60 * 24));
+        const return_fine = daysElapsed * 10;
 
-    await foundBook.save();
+        foundBook.dateBorrowed = null;
+        foundBook.returnDate = null;
+        foundBook.user_id = null;
 
-    if(return_fine > 0){
-        res.status(200).send(`Thank you for your return. You are ${daysElapsed} days late, for which your fine is PKR ${return_fine}`);
-    } else {
-        res.status(200).send('Thank you for your return!');
+        await foundBook.save();
+
+        if(return_fine > 0){
+            res.status(200).send(`Thank you for your return. You are ${daysElapsed} days late, for which your fine is PKR ${return_fine}`);
+        } else {
+            res.status(200).send('Thank you for your return!');
+        }
+
+    } catch(error){
+        res.status(500).send(error);
     }
 }
-
-//request for unavailable book
 
 module.exports = { borrowBook, returnBook };
