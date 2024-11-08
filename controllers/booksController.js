@@ -34,7 +34,7 @@ const listOfBooks = async(req, res) => {
     const role_jwt = req.role;
     
     console.log("role from jwt: ", role_jwt);
-    if(role_jwt != "Admin" && role_jwt != "admin"){
+    if(role_jwt != "Admin" && role_jwt != "admin" && role_jwt != "User" && role_jwt != "user"){
         return res.status(401).send("Unauthorized");
     }
 

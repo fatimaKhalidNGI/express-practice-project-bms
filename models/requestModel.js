@@ -1,48 +1,38 @@
 module.exports = ( sequelize, DataTypes ) => {
-    const User = sequelize.define('User', {
-        user_id : {
+    const Request = sequelize.define("Request", {
+        request_id : {
             type : DataTypes.INTEGER,
             autoIncrement : true,
             primaryKey : true
         },
-        name : {
-            type : DataTypes.STRING,
-            allowNull : false
-        },
-    
-        email : {
-            type : DataTypes.STRING,
-            allowNull : false,
-            unique : true
-        },
-    
-        password : {
-            type : DataTypes.STRING,
-            allowNull : false
-        },
-    
-        role : {
+
+        book_title : {
             type : DataTypes.STRING,
             allowNull : false
         },
 
-        refresh_token : {
+        book_author : {
+            type : DataTypes.STRING,
+            allowNull : false
+        },
+
+        status : {
+            type : DataTypes.STRING,
+            allowNull : false
+        },
+
+        admin_response : {
             type : DataTypes.STRING,
             allowNull : true
         }
     });
-        
-    User.associate = (models) => {
-        User.hasMany(models.Book, {
-            foreignKey : 'user_id',
-            as : "books"
-        });
 
-        User.hasMany(models.Request, {
+    Request.associate = (models) => {
+        Request.belongsTo(models.User, {
             foreignKey : 'user_id',
-            as : "book requests"
+            as : "requested by"
         });
     };
 
-    return User;
+    return Request;
 }
