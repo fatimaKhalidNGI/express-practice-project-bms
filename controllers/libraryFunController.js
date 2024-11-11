@@ -23,8 +23,9 @@ const borrowBook = async(req, res) => {
     }
 
     const { book_id } = req.params;
-    if(!book_id){
-        return res.status(400).send("Book ID missing");
+    const { numDays } = req.body;
+    if(!book_id || !numDays){
+        return res.status(400).send("Data missing");
     }
 
     //find book in db
@@ -45,7 +46,7 @@ const borrowBook = async(req, res) => {
         } else {
             let bDate = new Date();
             let rDate = new Date(bDate);
-            (rDate.setDate(rDate.getDate() + 7));
+            (rDate.setDate(rDate.getDate() + numDays));
             
             foundBook.dateBorrowed = bDate;
             foundBook.returnDate = rDate;
@@ -53,7 +54,7 @@ const borrowBook = async(req, res) => {
     
             await foundBook.save();
     
-            res.status(200).send(`${foundBook.title} issued. You have to return in within 5 days. Late returns will be subject to a fine of PKR 50 per day`);
+            res.status(200).send(`${foundBook.title} issued. Return Date: ${rDate.toDateString()}. Late returns will be subject to a fine of PKR 50 per day`);
         }
     } catch(error){
         res.status(500).send(error);
@@ -122,4 +123,48 @@ const returnBook = async(req, res) => {
     }
 }
 
-module.exports = { borrowBook, returnBook };
+//book return reminder
+const returnReminder = async(req, res) => {
+    //jwt verification
+    const role_jwt = req.role;
+    if(role_jwt != "User" && role_jwt != "user"){
+        return res.status(401).send("Unauthorized");
+    }
+
+    const userEmail_jwt = req.email;
+    
+    const foundUser = await User.findOne({
+        where : { email : userEmail_jwt }
+    });
+    if(!foundUser){
+        return res.status(404).send("User not found");
+    }
+
+    try {
+        const borrowedBooks = await Book.findAll({
+            where : { user_id : foundUser.user_id},
+            attributes : { exclude : ['book_id', 'author', 'dateBorrowed', 'createdAt', 'updatedAt', 'user_id']}
+        });
+
+        const today_date = new Date();
+
+        //test
+        // let today_date = new Date();
+        // today_date.setDate(today_date.getDate() + 1);
+        
+        const reminders = borrowedBooks.filter((book) => {
+            return (Math.floor((book.returnDate - today_date) / (1000 * 60 * 60 * 24))) === 1;
+        });
+
+        if(reminders.length === 0){
+            return res.status(404).send("No books to return within 1 day");
+        }
+
+        res.status(200).send(reminders);
+        
+    }catch (error){
+        res.status(500).send(error);
+    }
+}
+
+module.exports = { borrowBook, returnBook, returnReminder };
