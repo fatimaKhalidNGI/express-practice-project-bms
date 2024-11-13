@@ -205,7 +205,7 @@ const userLogout = async(req, res) => {
 const refreshJWT = async(req, res) => {
     const cookies = req.cookies;
     if(!cookies?.jwt){
-        return res.st(401);
+        return res.status(401).send();
     }
 
     const refreshToken = cookies.jwt;
